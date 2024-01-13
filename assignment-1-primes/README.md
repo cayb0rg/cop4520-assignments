@@ -4,10 +4,14 @@
 ## Instructions
 Make sure you have Rust installed.
 
-Run the commands:
-1. `git clone git@github.com:cayb0rg/cop4520-assignments.git`
-2. `cd assignment-1-primes`
-3. `cargo run [thread_count]`. The argument `thread_count` is optional. The program will create eight threads if no arguments are given.
+Navigate to a directory you would like this repository installed. Then, run the commands:
+```
+git clone git@github.com:cayb0rg/cop4520-assignments.git &&
+cd cop4520-assignments/assignment-1-primes &&
+cargo run
+```
+
+You may also pass a thread count argument like so: `cargo run 9`. The program will create eight threads if no arguments are given.
 
 ## Output
 The program outputs the execution time, total number of primes found, the sum of all primes, and the top ten maximum primes.
