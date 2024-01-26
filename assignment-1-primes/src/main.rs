@@ -41,7 +41,7 @@ fn get_primes(num_threads: i32) {
         let handle = thread::spawn(move || {
             loop {
                 let cur_num;
-                {
+                { // fetch next counter value
                     let mut num = counter.lock().unwrap();  // enter critical section
                     cur_num = *num;  // in critical section
                     *num += 2;       // in critical section
@@ -52,15 +52,15 @@ fn get_primes(num_threads: i32) {
                     break;
                 }
                 if check_prime(cur_num) {
-                    {
+                    { // mark number as prime
                         let mut is_prime = is_prime.lock().unwrap(); // enter critical section
                         is_prime[cur_num as usize] = true;  // in critical section
                     } // leave critical section
-                    {
+                    { // increment number of primes
                         let mut num_primes = num_primes.lock().unwrap(); // enter critical section
                         *num_primes += 1;  // in critical section
                     } // leave critical section
-                    {
+                    { // add prime to total sum
                         let mut sum = sum.lock().unwrap(); // enter critical section
                         *sum += cur_num; // in critical section
                     } // leave critical section
