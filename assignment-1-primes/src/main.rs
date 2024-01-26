@@ -116,6 +116,7 @@ fn check_prime(num: u64) -> bool {
     // check whether num is divisible by any number between 0 and num's square root
     let max = (num as f64).sqrt() as u64 + 1;
 
+    // start at 3 and increment by 2 to skip even numbers
     for i in (3..max).step_by(2) {
         if num % i == 0 {
             return false;
