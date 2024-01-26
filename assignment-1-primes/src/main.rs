@@ -19,10 +19,13 @@ fn main() {
 // Given the number of threads, calculate the prime numbers up to 10^8 using multithreading
 // Store the elapsed time, number of primes, and last ten prime numbers in 'primes.txt'
 fn get_primes(num_threads: i32) {
-    let counter = Arc::new(Mutex::new(3));
-    let primes = Arc::new(Mutex::new(vec![2]));
-    let sum = Arc::new(Mutex::new(2));
+    let counter = Arc::new(Mutex::new(3)); // start on number 3
+    let sum = Arc::new(Mutex::new(2)); // add 2 to sum
     let max = (10 as u64).pow(8);
+    let mut primes_array = vec![false; max as usize];
+    primes_array[2] = true; // initialize number 2 as prime
+    let is_prime = Arc::new(Mutex::new(primes_array));
+    let num_primes = Arc::new(Mutex::new(1)); // cause we've added number 2 already
 
     let mut handles = vec![];
 
@@ -30,8 +33,9 @@ fn get_primes(num_threads: i32) {
     let now = Instant::now();
     for _ in 0..num_threads {
         let counter = Arc::clone(&counter);
-        let primes = Arc::clone(&primes);
+        let is_prime = Arc::clone(&is_prime);
         let sum = Arc::clone(&sum);
+        let num_primes = Arc::clone(&num_primes);
 
         // spawn the thread
         let handle = thread::spawn(move || {
@@ -47,10 +51,14 @@ fn get_primes(num_threads: i32) {
                 if cur_num > max {
                     break;
                 }
-                if is_prime(cur_num) {
+                if check_prime(cur_num) {
                     {
-                        let mut primes = primes.lock().unwrap(); // enter critical section
-                        primes.push(cur_num);  // in critical section
+                        let mut is_prime = is_prime.lock().unwrap(); // enter critical section
+                        is_prime[cur_num as usize] = true;  // in critical section
+                    } // leave critical section
+                    {
+                        let mut num_primes = num_primes.lock().unwrap(); // enter critical section
+                        *num_primes += 1;  // in critical section
                     } // leave critical section
                     {
                         let mut sum = sum.lock().unwrap(); // enter critical section
@@ -69,15 +77,31 @@ fn get_primes(num_threads: i32) {
 
     // stop the timer
     let elapsed = now.elapsed();
-    let primes = primes.lock().unwrap();
-    let num_of_primes = (*primes).len();
 
-    // summarize results in primes.txt
-    let mut file_contents = format!("{:?} {:?} {:?}", elapsed, num_of_primes,*sum.lock().unwrap());
+    // get summary
+    let is_prime = is_prime.lock().unwrap();
+    let num_primes = num_primes.lock().unwrap();
+    let sum = sum.lock().unwrap();
+
+    // initialize file contents with elapsed time, number of primes, and sum
+    let mut file_contents = format!("{:?} {:?} {:?}", elapsed, *num_primes,*sum);
     file_contents.push('\n');
+
     // get top ten maximum primes
-    for i in (1..11).rev() {
-        file_contents.push_str(&(*primes)[num_of_primes - i].to_string());
+    let mut i = 1;
+    let mut count = 0;
+    let mut array = vec![];
+    while count <= 10  {
+        // iterate through is_prime array, starting at end
+        if is_prime[is_prime.len() - i] {
+            count += 1;
+            array.push(is_prime.len() - i);
+        }
+        i += 1;
+    }
+    // push top ten to file
+    for j in (0..10).rev() {
+        file_contents.push_str(&(array[j].to_string()));
         file_contents.push(' ');
     }
 
@@ -88,7 +112,7 @@ fn get_primes(num_threads: i32) {
 
 }
 
-fn is_prime(num: u64) -> bool {
+fn check_prime(num: u64) -> bool {
     // check whether num is divisible by any number between 0 and num's square root
     let max = (num as f64).sqrt() as u64 + 1;
 
@@ -137,7 +161,7 @@ fn is_prime(num: u64) -> bool {
 //                 if cur_num > max {
 //                     break;
 //                 }
-//                 if is_prime(cur_num) {
+//                 if check_prime(cur_num) {
 //                     {
 //                         let mut primes_found = primes_found.lock().unwrap();
 //                         primes_found[th as usize] += 1;
@@ -157,11 +181,7 @@ fn is_prime(num: u64) -> bool {
 //                 }
 
 //             }
-//             let mut execution_times = execution_times.lock().unwrap();
-//             execution_times[th as usize] = execution_time;
-//         });
-//         handles.push(handle);
-//     }
+//             let mut execution_times = execution_times.lock().unwrap();is_prime
 
 //     for handle in handles {
 //         handle.join().unwrap();
