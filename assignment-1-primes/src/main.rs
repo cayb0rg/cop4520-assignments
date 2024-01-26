@@ -1,9 +1,19 @@
 use std::sync::{Arc, Mutex};
-use std::{thread, fs};
+use std::{env, fs, thread};
 use std::time::Instant;
 
 fn main() {
-    get_primes(8);
+    let args: Vec<String> = env::args().collect();
+    // if the user provides a number, use that for the number of threads
+    if args.len() < 2 {
+        get_primes(8);
+    } else {
+        let num_threads = &args[1];
+        match num_threads.parse::<i32>() {
+            Ok(num) => get_primes(num),
+            Err(_) => println!("Incorrect number of threads entered. Please use an integer.")
+        }
+    }
 }
 
 // Given the number of threads, calculate the prime numbers up to 10^8 using multithreading
