@@ -17,11 +17,9 @@ The argument `thread_count` is optional. The program will create 8 threads if no
 The program output is stored in `primes.txt`.
 
 ## Evaluation
-Each thread is **well-formed**. Critical sections are locked using Rust's `Arc` struct, a thread-safe reference-counting pointer. We enter a new scope and call `lock()` on the shared counter before incrementing it. We save a copy of this value to use later. Upon leaving the scope, the lock drops automatically. We then do our `is_prime()` calculations (outside of any critical sections). If the number is prime, we call `lock()` on the array of primes and total sum before updating those.
+Each thread is **well-formed**. Critical sections are locked using Rust's `Arc` struct, a thread-safe reference-counting pointer. Threads share a counter that is protected by a lock. They save a copy of this counter value, run the `is_prime()` function on it, and update the `primes` vector and total `sum` variable if `is_prime()` returns true. The `is_prime()` calculation takes place outside of any locks to increase efficiency.
 
-Because the `is_prime` calculation takes place outside of any locks, the program can be run more efficiently.
-
-The program is **deadlock and starvation-free**. Work is consistently distributed across the threads each run. This was tested using the `Instant` crate and summing the time spent in critical sections by each thread in an array. This is left out of the final program because it creates an additional lock which takes extra computational time (about 7-10 seconds more) but can be found in the `test_execution_speeds` function. Example output during testing:
+The program is **deadlock and starvation-free**. Work is consistently distributed across the threads each run. This was tested using the `Instant` crate by summing the time spent in critical sections for each thread in an array. This is left out of the final program because it creates an additional lock which takes extra computational time (about 7-10 seconds more) but can be found in the `test_execution_speeds` function. Example output during testing:
 
 > Number of primes found by each thread:
 > Thread 1: 719234 in 5911810 microsec
