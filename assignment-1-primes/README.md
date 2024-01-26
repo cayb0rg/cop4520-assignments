@@ -4,17 +4,20 @@
 ## Instructions
 Make sure you have Rust installed.
 
-`git clone git@github.com:cayb0rg/cop4520-assignments.git`
-`cd assignment-1-primes`
-`cargo run [thread_count]`
+Navigate to a directory you would like this repository installed. Then, run the commands:
+```
+git clone git@github.com:cayb0rg/cop4520-assignments.git &&
+cd cop4520-assignments/assignment-1-primes &&
+cargo run
+```
 
-The argument `thread_count` is optional. The program will create 8 threads if no arguments are given.
+You may also pass a thread count argument like so: `cargo run 9`. The program will create eight threads if no arguments are given.
 
 ## Output
-> <execution time> <total number of primes found> <sum of all primes found>
-> <top ten maximum primes, listed in order from lowest to highest>
+The program outputs the execution time, total number of primes found, the sum of all primes, and the top ten maximum primes.
 
 The program output is stored in `primes.txt`.
+<<<<<<< HEAD:assignment-1-primes/README
 
 ## Evaluation
 Each thread is **well-formed**. Critical sections are locked using Rust's `Arc` struct, a thread-safe reference-counting pointer. We enter a new scope and call `lock()` on the shared counter before incrementing it. We save a copy of this value to use later. Upon leaving the scope, the lock drops automatically. We then do our `is_prime()` calculations (outside of any critical sections). If the number is prime, we call `lock()` on the array of primes and total sum before updating those.
@@ -32,3 +35,5 @@ The program is **deadlock and starvation-free**. Work is consistently distribute
 > Thread 6: 720162 in 5916540 microsec
 > Thread 7: 719175 in 5924184 microsec
 > Thread 8: 720185 in 5916393 microsec
+=======
+>>>>>>> 6974169917dc8d9d10b38beaf7955bbdea687e00:assignment-1-primes/README.md
