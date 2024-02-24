@@ -67,7 +67,9 @@ These are the rules the guests decide on BEFORE entering the labyrinth:
 5. One person is the counter. If the counter enters the labyrinth and there is no cupcake, they replace it and increase the count by one. Once the counter reaches a count of all the number of guests (minus themselves), the counter tells the minotaur that all guests have visited the labyrinth.
 6. If the counter enters the labyrinth and there is a cupcake, they do nothing.
 
-## Problem 2 Answers
+This method is efficient and no communication is involved between the guests once the party starts. If we remove the `thread::sleep` on line 101 and run `cargo run 1 100`, it finishes in approximately 1.5 seconds. I've left the `thread::sleep` in to simulate the guest roaming the labyrinth.
+
+## Problem 2 Answers and Strategy
 
 ### Strategy 1
 
@@ -80,3 +82,5 @@ The second strategy prevents guests from waiting outside the room to get in (the
 ### Strategy 3
 
 The third strategy has mutual exclusion, freedom from deadlock, and freedom from starvation. Every guest will eventually make it into the room, and it's not possible for two or more guests to get into a deadlock since it is queue-based (FIFO). However, because guests can queue multiple times, some guests may spend more time in the room than others. Also, the queue requires additional data structures that consumes computational resources.
+
+I chose to implement Strategy 3 because it is well-formed. All guests get a chance to go into the room and no more than one guest is in the showroom at a time. To implement it in Rust, I used the `VecDeque` data structure. The guests join the queue and wait until it is their turn, which is when they are first in line. They then enter the room and spend some time looking at the vase. When they leave, they pop themselves from the queue which is how they "tell" the next guest they can enter the room.
