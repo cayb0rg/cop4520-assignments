@@ -36,6 +36,7 @@ fn main() {
     }
 }
 
+// Problem 1
 fn start_party(num_threads: i32) {
     // start the timer
     let now = Instant::now();
@@ -73,6 +74,7 @@ fn start_party(num_threads: i32) {
                     }
                     println!("Counter leaves labryinth.");
                 }
+                // if the minotaur is still inviting people in
                 else if *minotaur_guard {
                     println!("Guest {} enters the labryinth.", guest);
                     if !ate_cupcake {
@@ -112,6 +114,8 @@ fn start_party(num_threads: i32) {
     println!("Completed in {:?}", elapsed);
 }
 
+
+// Problem 2
 // use queue method (strategy 3)
 fn vase_queue_strat(num_threads: i32) {
     let queue: Arc<Mutex<VecDeque<i32>>> = Arc::new(Mutex::new(VecDeque::new()));
@@ -133,7 +137,7 @@ fn vase_queue_strat(num_threads: i32) {
                 while {
                     let q = queue_clone.lock().unwrap();
                     let is_my_turn = q.front().unwrap() == &guest;
-                    !is_my_turn
+                    !is_my_turn // loop while it's not my turn
                 } {
                     thread::sleep(std::time::Duration::from_secs(1));
                 }
