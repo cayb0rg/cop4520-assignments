@@ -1,4 +1,4 @@
-use std::{env, sync::{Arc, Mutex}, thread, time::{Duration, Instant}};
+use std::{env, sync::{Arc, Mutex}, thread, time::Instant};
 use std::collections::VecDeque;
 
 const COUNTER: i32 = 1;
