@@ -187,7 +187,7 @@ pub struct DataCaptureFrame {
     pub time: Duration,
 }
 
-const LENGTH_OF_HOUR_IN_SECS: u64 = 3600; // in seconds
+const LENGTH_OF_HOUR_IN_SECS: u64 = 12; // in seconds
 
 // Problem 2
 /**
