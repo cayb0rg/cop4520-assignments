@@ -187,7 +187,7 @@ pub struct DataCaptureFrame {
     pub time: Duration,
 }
 
-const LENGTH_OF_HOUR_IN_SECS: u64 = 12; // in seconds
+const LENGTH_OF_HOUR_IN_SECS: u64 = 3600; // in seconds
 
 // Problem 2
 /**
@@ -234,7 +234,7 @@ fn atmospheric_temp_reading(num_threads: i32) {
                 // Store the temperature reading in shared memory
                 data.lock().unwrap().push(capture);
 
-                // Sleep for 1 minute
+                // Sleep for 1/60 of an hour
                 thread::sleep(Duration::from_secs(LENGTH_OF_HOUR_IN_SECS / 60));
             }
         });

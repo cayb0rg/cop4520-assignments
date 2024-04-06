@@ -27,7 +27,9 @@ The program will output the number of presents added and the number of thank you
 cargo run 2
 ```
 
-The program will output files in the format `report-<report_number>.txt` every hour. Please see program comments for more information.
+The program will output files in the format `report-<report_number>.txt` every hour. Please see program comments for more information and sample reports made.
+
+To test with a shorter hour (such as 1 min), change `LENGTH_OF_HOUR_IN_SECS` in program to a multiple of 60. (60 means one "hour" will be a minute)
 
 ## Problem 2 efficiency, correctness, and progress guarantee
 
