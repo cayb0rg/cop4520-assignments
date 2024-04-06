@@ -1,0 +1,16 @@
+Report:
+Lowest 5 temperatures:
+Time: 25.234134228s, Temp: -99.59298
+Time: 32.244842328s, Temp: -99.575195
+Time: 35.448559998s, Temp: -99.22486
+Time: 35.648566404s, Temp: -99.07686
+Time: 34.447800868s, Temp: -98.70425
+Highest 5 temperatures:
+Time: 30.241833205s, Temp: 69.99008
+Time: 31.043369807s, Temp: 68.99692
+Time: 35.448444204s, Temp: 67.9859
+Time: 35.248306849s, Temp: 67.64726
+Time: 31.844348671s, Temp: 67.32379
+10 minute interval with greatest temperature difference:
+Time: 30.041449875s, Temp: -71.33133
+Time: 32.044685697s, Temp: -20.66986
