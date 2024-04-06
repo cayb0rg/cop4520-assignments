@@ -82,56 +82,6 @@ impl<T> List<T> {
             locked_node.elem.clone()
         })
     }
-
-
-
-    // pub fn add_in_order(&mut self, elem: T)
-    // where
-    //     T: Clone + PartialOrd,
-    // {
-    //     println!("Adding node");
-    //     std::io::stdout().flush().unwrap();
-    //     let new_node = Arc::new(Mutex::new(Node {
-    //         elem: elem,
-    //         next: None,
-    //     }));
-
-    //     let mut current = self.head.clone();
-    //     let mut prev = None;
-    // locked_nodep();
-    //         if locked_node.as_ref() >= new_node.lock().unwrap().as_ref() {
-    //             println!("Found a node with a greater value");
-    //             break;
-    //         }
-    //         prev = Some(node.clone());
-    //         current = locked_node.next.clone();
-    //     }
-
-    //     if let Some(prev) = prev {
-    //         println!("Adding node in the middle of the list");
-    //         let mut locked_prev = prev.lock().unwrap();
-    //         let mut new_node = new_node.lock().unwrap();
-    //         new_node.next = locked_prev.next.clone();
-    //         locked_prev.next = Some(Arc::new(Mutex::new(new_node.clone())));
-    //     } else {
-    //         println!("Adding node at the beginning of the list");
-    //         let mut new_node = new_node.lock().unwrap();
-    //         new_node.next = self.head.clone();
-    //         self.head = Some(Arc::new(Mutex::new(new_node.clone())));
-    //     }
-    // }
-
-    // pub fn iter(&self) -> Iter<'_, T>
-    // where
-    //     T: Clone,
-    // {
-    //     Iter {
-    //         next: self.head.as_ref().map(|node| {
-    //             let locked_node = node.lock().unwrap();
-    //             locked_node.as_ref()
-    //         }),
-    //     }
-    // }
 }
 
 impl<T> Drop for List<T> {
@@ -147,21 +97,6 @@ impl<T> Drop for List<T> {
     }
 }
 
-// pub struct Iter<'a, T> {
-//     next: Option<&'a Node<T>>,
-// }
-
-// impl<'a, T> Iterator for Iter<'a, T> {
-//     type Item = &'a T;
-
-//     fn next(&mut self) -> Option<Self::Item> {
-//         self.next.map(|node| {
-//             self.next = node.next.as_ref().map(|n| &*n.lock().unwrap());
-//             &node.elem
-//         })
-//     }
-// }
-
 pub fn add_in_order(head: &mut Link<Present>, present: Present) -> Option<Present> {
     println!("Adding present: {:?}", present.tag);
     let new_node = Arc::new(Mutex::new(Node {
@@ -174,32 +109,41 @@ pub fn add_in_order(head: &mut Link<Present>, present: Present) -> Option<Presen
 
     if let None = current {
         println!("Empty list, returning new head");
+        *head = Some(new_node.clone());
         return Some(new_node.lock().unwrap().elem.clone());
     }
 
     let mut position = 0;
     while let Some(node) = current {
         let locked_node = node.lock().unwrap();
+        println!("node: {:?}", locked_node.elem.tag);
+        println!("next: {:?}", locked_node.next);
         if locked_node.as_ref() >= new_node.lock().unwrap().as_ref() {
             println!("Inserting present at position: {}", position);
 
+            let mut new_node_clone = new_node.lock().unwrap();
+            // update the head
+            new_node_clone.next.replace(node.clone());
             if let Some(prev) = prev {
                 println!("Inserting present in middle");
                 let mut locked_prev = prev.lock().unwrap();
-                let mut new_node = new_node.lock().unwrap();
-                locked_prev.next = Some(Arc::new(Mutex::new(new_node.clone())));
-                new_node.next = Some(Arc::new(Mutex::new(locked_node.clone())));
+                locked_prev.next.replace(new_node.clone());
+                return None;
             } else {
                 println!("Inserting present at beginning");
-                // update the head
-                let mut new_node = new_node.lock().unwrap();
-                new_node.next = Some(Arc::new(Mutex::new(locked_node.clone())));
+                *head = Some(new_node.clone());
+                return Some(new_node_clone.elem.clone());
             }
         }
         prev = Some(node.clone());
         current = locked_node.next.clone();
         position += 1;
     }
+    // end of list
+    println!("Inserting present at end");
+    let prev = prev.unwrap();
+    let mut locked_prev = prev.lock().unwrap();
+    locked_prev.next.replace(new_node.clone());
 
     None
 }
@@ -215,8 +159,10 @@ pub fn write_thank_you_note(node: Link<Present>, serf: i32) -> Link<Present> {
             return Some(node_ref.clone());
         }
         if let Some(next) = locked_node.next.clone() {
+            println!("Thread {} is checking the next present {}", serf, next.lock().unwrap().elem.tag);
             node = Some(next);
         } else {
+            println!("No next present, returning None");
             break;
         }
     }

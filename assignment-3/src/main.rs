@@ -131,16 +131,7 @@ fn servant_behavior(num_threads: i32, num_presents: u32) {
                     }
                     println!("Present {}", present.tag);
                     // add present to the chain in the correct position
-                    match add_in_order(&mut head, present.clone()) {
-                        Some(present) => {
-                            // update head to contain the new node
-                            head.replace(Arc::new(Mutex::new(Node {
-                                elem: present,
-                                next: head.clone(),
-                            })));
-                        },
-                        None => ()
-                    }
+                    add_in_order(&mut head, present.clone());
 
                     println!("Thread {} added present to the chain", serf);
 
