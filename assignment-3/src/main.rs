@@ -1,8 +1,8 @@
 use std::{env, fs::File, sync::{Arc, Mutex}, thread, time::{Duration, Instant}};
-use rand::{random, Rng};
+use rand::Rng;
 use std::io::Write;
 
-use assignment_3::list::{add_in_order, write_thank_you_note, List, Node, Present};
+use assignment_3::list::{add_in_order, write_thank_you_note, List, Present};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -41,9 +41,9 @@ fn create_bag(num_presents: u32) -> Vec<Present> {
 
 #[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
 pub enum Turn {
-    WRITE_THANK_YOU,
-    ADD_PRESENT,
-    CHECK_FOR_PRESENT
+    WriteThankYou,
+    AddPresent,
+    CheckForPresent
 }
 
 // Problem 1
@@ -80,72 +80,75 @@ fn servant_behavior(num_threads: i32, num_presents: u32) {
         let bag_empty = Arc::clone(&bag_empty);
         let handle = thread::spawn(move || {
             // track which action to perform next
-            let mut turn = Turn::ADD_PRESENT;
+            let mut turn = Turn::AddPresent;
             let mut head = head.clone();
             loop {
                 // randomly decide whether Minotaur requests to find a tag
                 let random_num_below_100 = rand::random::<u32>() % 100;
                 if random_num_below_100 < 10 {
-                    turn = Turn::CHECK_FOR_PRESENT;
+                    turn = Turn::CheckForPresent;
                 }
                 // 1. write a thank you note
-                if turn == Turn::WRITE_THANK_YOU {
-                    // println!("Thread {} is writing a thank you note", serf);
+                if turn == Turn::WriteThankYou {
                     let mut wrote_thanks = true;
                     let head = head.clone();
+                    // iterate through presents to find ones without a thank you card written, starting at head
                     match write_thank_you_note(head, serf) {
-                        Some(node) => (),
+                        Some(_) => (),
                         None => {
+                            // if all presents have thank yous written and the bag is empty, break loop
                             let bag_empty = bag_empty.lock().unwrap();
                             if *bag_empty {
                                 break;
                             }
                             wrote_thanks = false;
-                            // head.clone() // start from the beginning
                         },
                     };
 
+                    // if a thank you note was written, increment the count
                     if wrote_thanks {
                         println!("Thread {} wrote a thank you note", serf);
                         let mut num_thank_yous = num_thank_yous.lock().unwrap();
                         *num_thank_yous += 1;
                     }
 
-                    turn = Turn::ADD_PRESENT;
+                    turn = Turn::AddPresent;
                 }
                 // 2. add a present to the chain
-                else if turn == Turn::ADD_PRESENT {
+                else if turn == Turn::AddPresent {
                     let present;
                     {
+                        // create a critical section for drawing from the bag
                         let mut bag = bag.lock().unwrap();
                         // println!("Thread {} is adding a present to the chain", serf);
                         present = match bag.pop() {
                             Some(present) => present,
                             None => {
+                                // if the bag is empty, set the flag to true and break loop
                                 let mut bag_empty = bag_empty.lock().unwrap();
                                 *bag_empty = true;
-                                turn = Turn::WRITE_THANK_YOU;
+                                turn = Turn::WriteThankYou;
                                 continue;
                             },
                         };
                     }
-                    println!("Present {}", present.tag);
                     // add present to the chain in the correct position
                     add_in_order(&mut head, present.clone());
 
                     println!("Thread {} added present to the chain", serf);
 
+                    // increment the number of presents added
                     let mut num_presents_added = num_presents_added.lock().unwrap();
                     *num_presents_added += 1;
 
-                    turn = Turn::WRITE_THANK_YOU;
+                    turn = Turn::WriteThankYou;
                 }
                 // 3. check whether a gift with a particular tag in present in the chain
-                else if turn == Turn::CHECK_FOR_PRESENT {
-                    println!("Thread {} is checking for a present in the chain", serf);
+                else if turn == Turn::CheckForPresent {
+                    let tag_to_find = rand::random::<u32>() % num_presents;
+                    println!("Thread {} is checking for a present with tag {} in the chain", serf, tag_to_find);
                     let mut current = head.clone();
                     let mut found = false;
-                    let tag_to_find = rand::random::<u32>() % num_presents;
                     while let Some(node) = current {
                         let locked_node = node.lock().unwrap();
                         if locked_node.elem.tag == tag_to_find {
@@ -158,10 +161,9 @@ fn servant_behavior(num_threads: i32, num_presents: u32) {
                     if !found {
                         println!("Thread {} did not find present with tag {}", serf, tag_to_find);
                     }
-                    turn = Turn::WRITE_THANK_YOU;
+                    turn = Turn::WriteThankYou;
                 }
             }
-            println!("Thread {} exited loop", serf);
         });
 
         handles.push(handle);
@@ -188,7 +190,14 @@ pub struct DataCaptureFrame {
 const LENGTH_OF_HOUR_IN_SECS: u64 = 3600; // in seconds
 
 // Problem 2
-// use queue method (strategy 3)
+/**
+ * Simulate temperature readings from 8 sensors
+ * Every minute, each sensor will generate a random temperature reading
+ * Every hour, the program will compile a report of the following:
+ * 1. The lowest 5 temperatures
+ * 2. The highest 5 temperatures
+ * 3. The 10 minute interval of time when the largest temperature difference was observed
+ */
 fn atmospheric_temp_reading(num_threads: i32) {
     // start the timer
     let start = Instant::now();
@@ -271,6 +280,7 @@ pub fn compile_report(data: &Arc<Mutex<Vec<DataCaptureFrame>>>, num_reports: &mu
         if i == 0 {
             continue;
         } else {
+            // check the difference between the current temp and the temp 10 minutes ago
             let diff = frame.temp - data[i - 10].temp;
             if diff > greatest_temp_diff {
                 if interval.len() < 2 {
